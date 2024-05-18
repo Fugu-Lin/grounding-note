@@ -4,7 +4,7 @@ from utils.file_utils import FileUtils
 if __name__ == '__main__':
     # 創建實例
     user_service = UserService()
-    file_utils   = FileUtils
+    file_utils = FileUtils()
     # 取得使用者資料並印出
     user1 = user_service.get_user_by_id(1)
     print(user1)
