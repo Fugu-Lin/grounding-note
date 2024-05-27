@@ -1,7 +1,7 @@
 from service.grounding_search_service import GroundingSearchService
 from service.query_rewrite_service    import QueryRewriteService
 from service.summary_service          import SummaryService
-
+from service.generate_title_service   import GenerateTitleService
 from flask import Flask, request, jsonify, render_template_string
 from google.cloud import storage
 import markdown
@@ -47,19 +47,20 @@ def generate_new_article():
     groundingSearchService = GroundingSearchService()
     queryRewriteService    = QueryRewriteService()
     summaryService         = SummaryService()
-
+    generateTitleService   = GenerateTitleService()
+    
     request_data = request.get_json()
     query        = request_data.get('query')
-
     search_keywords      = queryRewriteService.process(query)
     disorganized_content = groundingSearchService.process(search_keywords)
     summarized_article_content = summaryService.process(disorganized_content)
-
+    title = generateTitleService.process(summarized_article_content)
+    
     if not summarized_article_content:
         return jsonify({"error": "No markdown content provided"}), 400
     
     bucket_name = 'grounding-bucket'
-    blob_name = f'test.md'
+    blob_name = f'{title}.md'
     
     # Define the path for the markdown file in GCS
     gcs_path = f"gs://{bucket_name}/{blob_name}"
@@ -88,4 +89,4 @@ def get_markdown_from_gcs(bucket_name, blob_name):
     return blob.download_as_text()
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8081, debug=True)

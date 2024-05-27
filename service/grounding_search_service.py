@@ -1,6 +1,6 @@
+import vertexai
 from vertexai.generative_models import GenerationConfig, GenerativeModel, Tool
 from vertexai.preview.generative_models import grounding
-import vertexai
 
 class GroundingSearchService:
 
