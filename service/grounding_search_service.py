@@ -1,34 +1,38 @@
-import vertexai
 from vertexai.generative_models import GenerationConfig, GenerativeModel, Tool
 from vertexai.preview.generative_models import grounding
+from bs4 import BeautifulSoup
+import requests
+import os
 
 class GroundingSearchService:
 
     def __init__(self) -> None:
-        # Use Google Search for grounding
-        self.tool = Tool.from_google_search_retrieval(grounding.GoogleSearchRetrieval())
-        # vertexai.init(project='peaceful-surge-383202', location="us-central1")
-
-    def process(self, search_keywords):
-        model = GenerativeModel(model_name="gemini-1.5-pro-001")
+        self.api_key = os.getenv('API_KEY')
+        self.cse_id  = os.getenv('CSE_ID')
         
-        responses = []
+    def fetch_article_content(self, url):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
+            content = soup.get_text()
+            return content
+        except Exception as e:
+            return f"Error fetching content from {url}: {e}"
+        
+    def google_search(self, query):
+        url = 'https://www.googleapis.com/customsearch/v1'
+        params = {'q': query, 'key': self.api_key, 'cx': self.cse_id}
+        response = requests.get(url, params=params)
+        result = response.json()
+        return result
 
+    def process(self, search_keywords):        
+        responses = []
         i = 1
         for keyword in search_keywords:
-            response = model.generate_content(
-                keyword,
-                tools=[self.tool],
-                generation_config=GenerationConfig(
-                    temperature=0.0,
-                ),
-            )
-            response = response.candidates[0].text
-
+            response = self.google_search(keyword)
             response = f"The {i} th article: {response}"
-
             i += 1
             responses.append(response)
-
-            
         return ', '.join(response for response in responses)
