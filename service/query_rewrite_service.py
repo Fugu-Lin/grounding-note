@@ -1,29 +1,8 @@
 from vertexai.generative_models import GenerativeModel
-import vertexai
 import re
 import os
 
 class QueryRewriteService:
-
-    def process(self, prompt):
-        # start with gemini model
-        model = GenerativeModel('gemini-1.5-pro-001')
-        
-        prompt = self.make_prompt_user(prompt)
-        
-        response = model.generate_content(
-            self.make_prompt_user(prompt),
-            generation_config={
-                'temperature': 0.5,
-                'top_k': 10,
-            }
-        )
-        
-        text = response.candidates[0].text
-        
-        keywords = self.parser_rewrite_keywords(text)
-
-        return keywords
     
     # prompt for the User imput
     def make_prompt_user(self, query):
@@ -51,4 +30,25 @@ ANSWER:
         text = text.replace("[", "").replace("]", "")
         # Split the string by comma and strip any leading/trailing whitespace from each keyword
         keywords = [keyword.strip() for keyword in text.split(",")]
+        return keywords
+
+
+    def process(self, prompt):
+        # start with gemini model
+        model = GenerativeModel('gemini-1.5-pro-001')
+        
+        prompt = self.make_prompt_user(prompt)
+        
+        response = model.generate_content(
+            self.make_prompt_user(prompt),
+            generation_config={
+                'temperature': 0.5,
+                'top_k': 10,
+            }
+        )
+        
+        text = response.candidates[0].text
+        
+        keywords = self.parser_rewrite_keywords(text)
+
         return keywords

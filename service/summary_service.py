@@ -1,6 +1,5 @@
 from vertexai.generative_models import GenerationConfig, GenerativeModel, Tool
 from vertexai.preview.generative_models import grounding
-import vertexai
 
 class SummaryService:
     def process(self, disorganized_content):

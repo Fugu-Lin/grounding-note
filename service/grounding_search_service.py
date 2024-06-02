@@ -1,4 +1,5 @@
 from vertexai.generative_models import GenerationConfig, GenerativeModel, Tool
+from vertexai.preview.generative_models import grounding
 from bs4 import BeautifulSoup
 import requests
 import os
@@ -8,6 +9,8 @@ class GroundingSearchService:
     def __init__(self) -> None:
         self.api_key = os.getenv('API_KEY')
         self.cse_id  = os.getenv('CSE_ID')
+        self.tool    = Tool.from_google_search_retrieval(grounding.GoogleSearchRetrieval())
+        self.model   = GenerativeModel(model_name="gemini-1.5-pro-001")
         
     def fetch_article_content(self, url):
         try:
@@ -51,14 +54,26 @@ class GroundingSearchService:
             print("No results found.")
         
         return web_contents
-
+    
+    def google_grounding_search(self, keyword):
+        response = self.model.generate_content(
+            keyword,
+            tools = self.tool,
+            generation_config=GenerationConfig(
+                    temperature=0.0,
+                ),
+        )  
+        return response.candidates[0].text
+    
     def process(self, search_keywords):
-        model = GenerativeModel(model_name="gemini-1.5-pro-001")
         responses = []
         i = 1
         
         for keyword in search_keywords:
-            response = self.google_search(keyword)
+            ## With google search
+            # response = self.google_search(keyword)
+            ## With grounding search
+            response = self.google_grounding_search(keyword)
             response = f"The {i} th search result: {response}"
             i += 1
             responses.append(response)
